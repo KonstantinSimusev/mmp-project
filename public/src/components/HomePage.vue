@@ -1,6 +1,5 @@
 <script>
 import axios from 'axios';
-
 import PackResidueChart from './charts/PackResidueChart.vue';
 import PackPlanChart from './charts/PackPlanChart.vue';
 import FastenPlanChart from './charts/FastenPlanChart.vue';
@@ -26,11 +25,11 @@ export default {
             date: '',
             shift: '',
             team: '',
+            loaded: false,
         }
     },
     async mounted() {
-        try 
-        {
+        try {
             const dataBaseEmployees = await axios
                 .get('http://127.0.0.1:8000/api/employee/?format=json');
 
@@ -39,8 +38,8 @@ export default {
 
             this.employees = dataBaseEmployees.data;
             this.report = dataBaseReport.data;
-        }
-        catch (error) {
+
+        } catch (error) {
             console.log(error);
         }
 
@@ -51,6 +50,8 @@ export default {
         this.master = this.employees.filter(employee => 
             employee.team == this.team &&
             employee.slug == 'master')[0].fullname;
+
+        this.loaded = true;
     },
 
 }
@@ -58,20 +59,29 @@ export default {
 
 <template>
     <div class="container">
-        <div class="row">
+
+        <div v-if="!loaded" class="loading__spinner d-flex align-items-center text-secondary px-5">
+            <strong role="status">Идет загрузка...</strong>
+            <div class="spinner-border ms-auto" aria-hidden="true"></div>
+        </div>
+
+        <div v-if="loaded" class="row">
             <div class="col-md-9 col-lg-7 col-xl-6 col-xxl-5">
 
-                <div class="text-secondary fw-bold small">Информация о смене</div>
+                <div class="text-secondary fw-bold small">Структурное подразделение</div>
+                <div>ЛПЦ-5 ПАО ММК</div>
+
+                <div class="text-secondary fw-bold small mt-3">Информация о смене</div>
                 <div>{{ date }}, смена {{ shift }}, бригада {{ team }}</div>
 
                 <div class="text-secondary fw-bold small mt-3">Мастер участка</div>
                 <div class="small">{{ master }}</div>
 
+                <SheetTable />
+
                 <PackPlanChart />
                 <FastenPlanChart />
                 <PackResidueChart />
-                
-                <SheetTable />
        
                 <BookTable />
                 <TeamTable />

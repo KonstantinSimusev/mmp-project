@@ -11,15 +11,23 @@ export default {
         Footer 
     },
     props: [
+        'addEmployee',
         'employee', 
-        'employees', 
-        'notTeamWorkers', 
+        'employees',
+        'nameOptions', 
+        'notTeamWorkers',
         'production', 
         'reportBtn', 
-        'sheetBtn', 
-        'shift', 
+        'shift',  
         'timesheet',
+        'trainees',
+        'teamWorkers',
     ],
+    data() {
+        return {
+            slug: 'master'
+        }
+    }
 }
 </script>
 
@@ -28,15 +36,19 @@ export default {
 
         <Header :employee="employee" />
 
-        <MasterPage :employee="employee"
-                    :employees="employees"
-                    :notTeamWorkers="notTeamWorkers"
-                    :production="production"
-                    :reportBtn="reportBtn"
-                    :sheetBtn="sheetBtn"
-                    :shift="shift"
-                    :timesheet="timesheet"
-                    v-if="this.employee[0].slug == 'master'" />
+        <MasterPage 
+            :addEmployee="addEmployee"
+            :employee="employee"
+            :employees="employees"
+            :nameOptions="nameOptions"
+            :notTeamWorkers="notTeamWorkers"
+            :production="production"
+            :reportBtn="reportBtn"
+            :shift="shift"
+            :timesheet="timesheet"
+            :trainees="trainees"
+            :teamWorkers="teamWorkers"
+            v-if="this.employee[0].slug == this.slug" />
 
         <Footer />
 

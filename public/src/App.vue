@@ -4,14 +4,17 @@ import { RouterView } from 'vue-router';
 export default {
     data() {
         return {
+            addEmployee: [],
             employee: [],
             employees: [],
+            nameOptions: [],
             notTeamWorkers: [],
             production: [],
             reportBtn: [],
-            sheetBtn: [],
             shift: [],
             timesheet: [],
+            trainees: [],
+            teamWorkers: [],
         }
     },
 }
@@ -19,14 +22,17 @@ export default {
 </script>
 
 <template>
-    <RouterView :employee="employee"
+    <RouterView :addEmployee="addEmployee"
+                :employee="employee"
                 :employees="employees"
+                :nameOptions="nameOptions"
                 :notTeamWorkers="notTeamWorkers"
                 :production="production"
                 :reportBtn="reportBtn"
-                :sheetBtn="sheetBtn"
                 :shift="shift" 
-                :timesheet="timesheet" />
+                :timesheet="timesheet"
+                :trainees="trainees"
+                :teamWorkers="teamWorkers" />
 </template>
 
 <style>

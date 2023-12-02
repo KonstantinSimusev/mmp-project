@@ -1,40 +1,97 @@
 <script>
-import axios from 'axios';
+import ReportForm from '../forms/ReportForm.vue';
 
 export default {
     name: 'ReportModal',
+    components: { ReportForm },
     props: [
+        'addEmployee',
+        'employee',
+        'employees',
+        'nameOptions',
+        'notTeamWorkers',
         'production', 
         'reportBtn', 
-        'shift'
+        'shift',
+        'timesheet',
+        'trainees',
+        'teamWorkers',
     ],
-    data() {
-        return {
-            areas: [],
-            visible: true,
-            disabled: 'disabled',
-        }
-    },
-    mounted() {
-        if (this.reportBtn.length > 0)
-            this.visible = this.reportBtn[0];
+    computed: {
+        countTraineeError() {
+            let error = 0;
+            let workers = [];
+
+            workers.push(...this.getAreaWorkers());
+            workers.push(...this.getSheetWorkers());
+            
+            this.trainees.flat().forEach(function(trainee) {
+                const findWorkers = workers.filter(worker =>
+                    worker == trainee);
+
+                if (findWorkers.length == 0)
+                    error++;
+            });
+
+            return error;
+        },
+    
+        countSheetError() {
+            const sheetErrorCount = this.timesheet.filter(worker =>
+                worker.presence == 'Выберите причину' &&
+                worker.visible == true).length;
+            return sheetErrorCount;
+        },
+
+        countAreaError() {
+            const areaErrorCount = this.production.filter(area =>
+                ((area.plan > 0 || area.residue > 0) && area.addWorkers.length == 0) ||
+                (area.plan == 0 && area.residue == 0 && area.addWorkers.length > 0)).length;
+            return areaErrorCount;
+        },
     },
     methods: {
-        saveReport() {
-            const data = {
-                date: this.shift[0].day,
-                shift: this.shift[0].number,
-                team: this.shift[0].team,
-                report: JSON.stringify(this.production[0])
-            }
+        createWorkerNames() {
+            let option = {};
+            let options = [];
 
-            axios.put(`http://127.0.0.1:8000/api/report/1/`, data);
+            const names = this.teamWorkers.map(worker => 
+                worker.fullname);
 
-            if (this.reportBtn.length == 0) {
-                this.visible = false;
-                this.reportBtn.push(this.visible);
-            }
+            const addNames = this.addEmployee.map(worker => 
+                    worker.fullname);
+
+            names.push(...addNames);
+            names.sort();
+
+            options.push('Выберите работника');
+            options.push(...names);
+
+            options = options.map(name => 
+                option = { value: name });
+            
+            this.nameOptions.length = 0;
+            this.nameOptions.push(...options);
         },
+
+        getAreaWorkers() {
+            const workers = this.production.map(area =>
+                area.addWorkers.map(worker =>
+                    worker)).flat();
+
+            return workers;
+        },
+
+        getSheetWorkers() {
+            const workers = this.timesheet
+                .filter(worker =>
+                    worker.presence != 'Выберите причину')
+                        .map(worker =>
+                            worker.initials);
+            
+            return workers;
+        },
+
     }
 }
 </script>
@@ -42,10 +99,11 @@ export default {
 <template>
     <div class="wrapper">
 
+        <!-- Button -->
         <div class="mt-5 text-center">
-            <button style="width: 245px;" v-if="visible" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#report">Создать рапорт</button>
+            <button style="width: 245px;" v-if="reportBtn.length == 0" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#report" @click="this.createWorkerNames()">Создать рапорт</button>
 
-            <button style="width: 245px;" v-if="!visible" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#report">Изменить рапорт</button>
+            <button style="width: 245px;" v-if="reportBtn.length > 0" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#report" @click="this.createWorkerNames()">Изменить рапорт</button>
         </div>
 
         <!-- The Modal -->
@@ -54,29 +112,49 @@ export default {
                 <div class="modal-content">
 
                     <!-- Modal Header -->
-                    <div class="modal-header bg-secondary">
-                        <h4 class="modal-title text-light fw-bold">Производство</h4>
+                    <div v-if="(countTraineeError == 0 && countAreaError == 0 && countSheetError == this.timesheet.length) || (countTraineeError == 0 && countAreaError == 0 && countSheetError == 0)" class="modal-header bg-secondary shadow-sm">
+                        <h5 class="modal-title text-light fw-bold">Рапорт</h5>
+                    </div>
+
+                    <!-- Modal Header -->
+                    <div v-if="countTraineeError > 0 || countAreaError > 0 || (countSheetError > 0 && countSheetError != this.timesheet.length)">
+
+                        <div class="error__title modal-header">
+                            <h5 class="modal-title fw-bold">Внимание!</h5>  
+                        </div>
+                        <div class="border border-danger text-danger fw-bold small p-3 rounded-4 m-4">
+                            <div class="row" v-if="countTraineeError > 0">
+                                <div class="col-10">Ошибка в стажировке :</div>
+                                <div class="col text-end">{{ countTraineeError }}</div>
+                            </div>
+                            <div class="row" v-if="countSheetError != this.timesheet.length && countSheetError > 0">
+                                <div class="col-10">Ошибка в табеле :</div>
+                                <div class="col text-end">{{ countSheetError }}</div>
+                            </div>
+                            <div class="row" v-if="countAreaError > 0">
+                                <div class="col-10">Ошибка в участке :</div>
+                                <div class="col text-end">{{ countAreaError }}</div>
+                            </div>
+                        </div> 
+
                     </div>
 
                     <!-- Modal body -->
                     <div class="modal-body">
-                        <form class="p-2" @submit.prevent="saveReport()">
-            
-                            <div class="area rounded p-3 mb-5 shadow" v-for="area in this.production[0].sort((a, b) => a.id - b.id)" :key="area.id">
-                                <div class="mb-1 small">{{ area.title }}, {{ area.unit }} :</div>
 
-                                <div class="d-flex">
-                                    <input class="form-control text-center me-2" type="number" placeholder="План" v-model="area.plan">
+                        <ReportForm 
+                            :addEmployee="addEmployee"
+                            :employee="employee"
+                            :employees="employees"
+                            :nameOptions="nameOptions"
+                            :notTeamWorkers="notTeamWorkers"
+                            :production="production"
+                            :reportBtn="reportBtn"    
+                            :shift="shift"
+                            :timesheet="timesheet"
+                            :trainees="trainees"
+                            :teamWorkers="teamWorkers" />
 
-                                    <input class="form-control text-center ms-2" type="number" placeholder="Остаток" v-model="area.residue"> 
-                                </div>
-                            </div> 
-                            <!-- Modal footer -->
-                            <div class="text-end">
-                                <button class="btn btn-danger" data-bs-dismiss="modal">Сохранить</button>
-                            </div>
-
-                        </form>
                     </div>
 
                 </div>
@@ -87,14 +165,8 @@ export default {
 </template>
 
 <style scoped>
-.area {
-    background: rgba(220, 220, 220, 0.6);
+.error__title { 
+    background: #ffc7c7; 
+    color: #a25959;
 }
-
-input::placeholder {
-    color: #333;
-}
-
-input:focus,
-button:focus { box-shadow: none }
 </style>

@@ -1,48 +1,28 @@
 <script>
 import axios from 'axios';
 
-class Employee {
-    constructor(
-        id,
-        slug,
-        fullname, 
-        profession, 
-        schedule, 
-        team,
-        area,
-        presence,
-        probation,
-        login,
-        password
-        ) {
-        this.id = id;
-        this.slug = slug;
-        this.fullname = fullname;
-        this.profession = profession;
-        this.schedule = schedule;
-        this.team = team;
-        this.area = area;
-        this.presence = presence;
-        this.probation = probation;
-        this.login = login;
-        this.password = password;
-    }
-}
-
 export default {
     name: 'LoginForm',
     props: [
         'employee', 
-        'employees'
+        'employees',
     ],
     data() {
         return {
+            // Database Properties
             baseEmployees: [],
-            newEmployees: [],
+
+            // Spinner Properties
+            loaded: false,
+
+            // Input Properties
             login: '',
             password: '',
+
+            // Invalid properties
             loginError: '',
             passwordError: '',
+            
         }
     },
     async mounted() {
@@ -51,41 +31,21 @@ export default {
                 .get('http://127.0.0.1:8000/api/employee/?format=json');
 
             this.baseEmployees = dataBaseEmployees.data;
-        }
-        catch (error) {
+
+        } catch(error) {
             console.log(error);
         }
 
-        this.baseEmployees.sort((a, b) => a.fullname > b.fullname ? 1 : -1);
-
-        this.newEmployees = this.baseEmployees.map((employee, index) =>
-            new Employee(
-                employee.id,
-                employee.slug,
-                employee.fullname, 
-                employee.profession, 
-                employee.schedule, 
-                employee.team,
-                'ЛПЦ-5',
-                'ЯВКА',
-                'ПРОЙДЕНА',
-                index,
-                index
-            )
-        );
-        // console.log(this.newEmployees);
+        this.loaded = true;
     },
     methods: {
         signIn() {
-            const person = this.newEmployees.filter(employee => 
-                this.login == employee.login &&
-                this.password == employee.password);
+            if (this.checkIn().length > 0) {
+            
+                this.employee.push(this.checkIn()[0]);
+                this.employees.push(...this.baseEmployees);
 
-            if (person.length > 0) {
-                this.employee.push(person[0]);
-                this.employees.push(...this.newEmployees);
-
-                if (person[0].slug != 'boss')
+                if (this.employee[0].slug != 'boss')
                     this.$router.push(`/${ this.employee[0].slug }/${ this.employee[0].id }/`);
                 else 
                     this.$router.push('/home/');
@@ -98,17 +58,56 @@ export default {
                 this.password = ''
             }
         },
+
+        checkIn() {
+            const manager = this.getManagers().filter(manager => 
+                manager.login == this.login &&
+                manager.password == this.password);
+            return manager;
+        },
+
+        getManagers() {
+            const managers = this.baseEmployees.filter(employee =>
+                employee.slug == 'master' && 
+                employee.schedule == '2-А' ||
+                employee.slug == 'boss')
+                    .sort((a, b) => a.slug < b.slug ? -1 : 1);
+            
+            return this.createManagers(managers);
+        },
+
+        createManagers(array) {
+            let manager = {};
+            const managers = array.map((employee, index) =>
+                manager = {
+                    id: employee.id,
+                    slug: employee.slug,
+                    fullname: employee.fullname,
+                    team: employee.team,
+                    login: index + 1,
+                    password: index + 1
+                }
+            )
+            return managers;
+        },
     },
 }
 </script>
 
 <template>
     <div class="container">
-        <form class="login__block mx-auto" @submit.prevent="signIn()">
 
-            <input type="text" v-bind:class="`form-control ${ loginError } ps-4 mb-3 shadow`" placeholder="Введите логин" v-model="login">
+        <!-- Spinner -->
+        <div v-if="!loaded" class="loading__spinner d-flex align-items-center text-secondary px-5">
+            <strong role="status">Идет загрузка...</strong>
+            <div class="spinner-border ms-auto" aria-hidden="true"></div>
+        </div>
+ 
+        <form v-if="loaded" class="login__block mx-auto" @submit.prevent="signIn()">
 
-            <input type="password" v-bind:class="`form-control ${ passwordError } ps-4 mb-5 shadow`" placeholder="Введите пароль" v-model="password">
+            <input type="text" v-bind:class="`form-control ${ loginError } ps-4 mb-3 shadow-sm`" placeholder="Введите логин" v-model="login">
+
+            <input type="password" v-bind:class="`form-control ${ passwordError } ps-4 mb-5 shadow-sm`" placeholder="Введите пароль" v-model="password">
                     
             <button class="btn btn-danger">Войти в личный кабинет</button>
 
@@ -117,7 +116,7 @@ export default {
 </template>
 
 <style scoped>
-form { margin-top: 130px; }
+form, .loading__spinner { margin-top: 130px; }
 
 form, .btn { width: 280px; }
 

@@ -1,109 +1,128 @@
 <script>
-import axios from 'axios';
-
 import DateForm from './forms/DateForm.vue';
 import ReportModal from './modals/ReportModal.vue';
-import TimeSheetModal from './modals/TimeSheetModal.vue';
 import AddModal from './modals/AddModal.vue';
 
 export default {
     name: 'MasterPage',
     components: { 
         DateForm, 
-        ReportModal, 
-        TimeSheetModal, 
-        AddModal 
+        ReportModal,
+        AddModal,
     },
     props: [
+        'addEmployee',
         'employee', 
-        'employees', 
+        'employees',
+        'nameOptions', 
         'notTeamWorkers',
         'production', 
         'reportBtn', 
-        'sheetBtn', 
-        'shift', 
-        'timesheet'
+        'shift',  
+        'timesheet',
+        'trainees',
+        'teamWorkers',
     ],
-    data() {
-        return {
-            areas: [],
-            teamWorkers: [],
-        }
+    mounted() {
+        this.createTeamWorkers();
+        this.createNotTeamWorkers();
     },
-    async mounted() {
-        try {
-            const dataBaseAreas = await axios
-                .get('http://127.0.0.1:8000/api/area/?format=json');
-            
-            this.areas = dataBaseAreas.data;
-        }
-        catch (error) {
-            console.log(error);
-        }
+    methods: {
+        createNotTeamWorkers() {
+            const workers = this.createWorkers().filter(worker =>
+                worker.team != this.employee[0].team);
 
-        let newAreas = this.areas.filter(area => area.slug != 'lpc_5');
+            if (this.notTeamWorkers.length == 0)
+                this.notTeamWorkers.push(...workers);
+        },
 
-        this.teamWorkers = this.employees.filter(employee =>
-            employee.team == this.employee[0].team &&
-            employee.schedule == '2-А' &&
-            employee.slug != 'master');
+        createTeamWorkers() {
+            const workers = this.createWorkers().filter(worker =>
+                worker.team == this.employee[0].team &&
+                worker.schedule == '2-А');
 
-        const notTeamEmployees = this.employees.filter(employee =>
-            (employee.team != this.employee[0].team &&
-            employee.slug != 'boss' &&
-            employee.slug != 'master') ||
-            (employee.schedule == '5-Б-1' &&
-            employee.slug != 'master') ||
-            employee.schedule == '9');
+            if (this.teamWorkers.length == 0)
+                this.teamWorkers.push(...workers);
+        },
 
-        this.notTeamWorkers.push(...notTeamEmployees);
-        
-        if (this.production.length == 0)
-            this.production.push(newAreas);
+        createWorkers() {
+            let newWorker = {};
+            const workers = this.employees.filter(employee =>
+                employee.slug != 'boss' &&
+                employee.slug != 'master');
 
-        if (this.timesheet.length == 0)
-            this.timesheet.push(this.teamWorkers);
-    },
+            const newWorkers = workers.map(worker =>
+                newWorker = {
+                    id: worker.id,
+                    slug: worker.slug,
+                    fullname: worker.fullname, 
+                    profession: worker.profession, 
+                    schedule: worker.schedule, 
+                    team: worker.team,
+                    area: 'ЛПЦ-5',
+                    initials: this.createInitials(worker.fullname),
+                    presence: 'Выберите причину',
+                    probation: 'ПРОЙДЕНА',
+                    info: 'Измените поле',
+                    error: true,
+                    visible: true,
+                }
+            )
+            return newWorkers;
+        },
+
+        createInitials(worker) {
+            const string = worker;
+            const surname = string.split(' ')[0];
+            const initials = string.split(' ')[1][0] + string.split(' ')[2][0];
+            const fullname = surname + ' ' + initials;
+
+            return fullname;
+        },
+    }
 }
 </script>
 
 <template>
     <div class="container">
 
+        <div class="text-secondary fw-bold small mt-3">Мастер участка</div>
+        <div>{{ employee[0].fullname }}</div>
+
         <div v-if="this.shift.length > 0">
-
             <div class="text-secondary fw-bold small mt-3">Информация о смене</div>
-            <div>{{ this.shift[0].day }}, смена {{ this.shift[0].number }}, бригада {{ this.shift[0].team }}</div>
-
-            <div class="text-secondary fw-bold small mt-3">Мастер участка</div>
-            <div>{{ employee[0].fullname }}</div>
+            <div v-if="this.shift.length > 0">{{ this.shift[0].day }}, смена {{ this.shift[0].number }}, бригада {{ this.shift[0].team }}</div>
         </div>
 
-        <DateForm   :shift="shift"
-                    :employee="employee"
-                    v-if="this.shift.length == 0" />
+        <DateForm   
+            :shift="shift"
+            :employee="employee"
+            v-if="this.shift.length == 0" />
 
-        <ReportModal    :production="production"
-                        :reportBtn="reportBtn"    
-                        :shift="shift"
-                        :timesheet="timesheet"
-                        v-if="this.shift.length > 0"/>
-                    
-        <TimeSheetModal :sheetBtn="sheetBtn"
-                        :shift="shift"
-                        :timesheet="timesheet"
-                        v-if="this.shift.length > 0"/>
+        <ReportModal
+            :addEmployee="addEmployee"
+            :employee="employee"
+            :employees="employees"
+            :nameOptions="nameOptions"
+            :notTeamWorkers="notTeamWorkers"
+            :production="production"
+            :reportBtn="reportBtn"    
+            :shift="shift"
+            :timesheet="timesheet"
+            :trainees="trainees"
+            :teamWorkers="teamWorkers"
+            v-if="this.shift.length > 0" />
 
-        <AddModal   :notTeamWorkers="notTeamWorkers"
-                    :shift="shift"
-                    :timesheet="timesheet"
-                    v-if="this.shift.length > 0"/>
+        <AddModal    
+            :addEmployee="addEmployee"
+            :employee="employee"
+            :employees="employees"
+            :notTeamWorkers="notTeamWorkers"
+            v-if="this.shift.length > 0" />
 
     </div>
 </template>
 
 <style scoped>
-.container {
-    margin-top: 80px;
-}
+.container { margin-top: 80px; }
 </style>

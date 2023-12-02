@@ -2,24 +2,32 @@
 import axios from 'axios';
 
 class Area {
-    constructor(id, title, unit, plan, workersCount) {
+    constructor(
+        id, 
+        title, 
+        productionCount, 
+        workerCount,
+        probationCount,
+        ) {
         this.id = id;
         this.title = title;
-        this.unit = unit;
-        this.plan = plan;
-        this.workersCount = workersCount;
+        this.productionCount = productionCount;
+        this.workerCount = workerCount;
+        this.probationCount = probationCount;
     }
 }
 
 export default {
-    name: 'FastenPlanTable',
-    props: [],
+    name: 'PackPlanTable',
     data() {
         return {
+            stacker: 'ШТАБЕЛИРОВЩИК МЕТАЛЛА',
+            presence: 'ЯВКА',
+            probation: 'СТАЖЕР',
+            slug: 'fasten',
+            production: [],
             areas: [],
             baseAreas: [],
-            professions: [],
-            production: [],
             timesheets: [],
         }
     },
@@ -27,9 +35,6 @@ export default {
         try {
             const dataBaseAreas = await axios
                 .get('http://127.0.0.1:8000/api/area/?format=json');
-            
-            const dataBaseProfessions = await axios
-                .get('http://127.0.0.1:8000/api/profession/?format=json');
 
             const dataBaseReport = await axios
                 .get('http://127.0.0.1:8000/api/report/?format=json');
@@ -38,7 +43,6 @@ export default {
                 .get('http://127.0.0.1:8000/api/timesheet/?format=json');
             
             this.baseAreas = dataBaseAreas.data;
-            this.professions = dataBaseProfessions.data;
             this.production = dataBaseReport.data;
             this.timesheets = dataBaseTimeSheets.data;
         }
@@ -46,50 +50,86 @@ export default {
             console.log(error);
         }
 
-        const packAreas = this.baseAreas.filter(area => area.slug == 'fasten');
-    
-        const teamSheet = this.timesheets.filter(sheet => 
+        const baseReport = this.production[0].report;
+        const baseSheet = this.timesheets.filter(sheet => 
             sheet.team == this.production[0].team)[0].timesheet;
+
+        const parseReport = JSON.parse(baseReport);
+        const parseSheet = JSON.parse(baseSheet);
+
+        const packAreas = parseReport.filter(area => area.slug == this.slug);
 
         const newAreas = packAreas.map(area =>
             new Area(
                 area.id,
                 area.title,
-                area.unit,
-
-                // area.plan
-                Number(JSON.parse(this.production[0].report)
-                    .filter(reportArea => reportArea.title == area.title)[0].plan), 
-
-                // area.workersCount
-                JSON.parse(teamSheet)
-                    .filter(report => 
-                        report.area == area.title &&
-                        report.profession == 'ШТАБЕЛИРОВЩИК МЕТАЛЛА' &&
-                        report.presence == 'ЯВКА').length,
+                area.plan,
+                this.countWorkers(area.title, parseSheet),
+                this.countProbationers(area.title, parseSheet),
             )
         );
 
-        this.areas = newAreas.filter(area => area.plan != 0 || area.workersCount != 0);
-    }, 
+        this.areas = newAreas.filter(area => 
+            area.productionCount != 0);
+    },
+    methods: {
+        countWorkers(area, timesheet) {
+            let total = this.countStacker(area, timesheet);
+
+            if(total == 0)
+                total = '-';
+
+            return total;
+        },
+        countProbationers(area, timesheet) {
+            let total = this.countProbationStacker(area, timesheet);
+
+            if(total == 0)
+                total = '-';
+
+            return total;
+        },
+        countStacker(area, timesheet) {
+            const total = timesheet.filter(report =>
+                report.area == area &&
+                report.profession == this.stacker &&
+                report.presence == this.presence &&
+                report.probation != this.probation
+            ).length;
+
+            return total;
+        },
+        countProbationStacker(area, timesheet) {
+            const total = timesheet.filter(report =>
+                report.area == area &&
+                report.profession == this.stacker &&
+                report.presence == this.presence &&
+                report.probation == this.probation
+            ).length;
+
+            return total;
+        },
+    } 
 }
 </script>
 
 <template>
     <div class="wrapper">
         <table class="mx-auto table table-hover table-sm align-middle small w-75 mb-4">
-            <thead class="small text-center">
+            <thead class="text-center small">
                 <tr>
                     <th class="text-light bg__header__color">Участок</th>
                     <th class="text-light bg__header__color">шт</th>
                     <th class="text-light bg__header__color">Чел</th>
+                    <th class="text-light bg__header__color">Стажер</th>
                 </tr>
             </thead>
             <tbody class="text-center small">
-                <tr v-for="area in this.areas.sort((a,b) => a.id - b.id)" :key="area">
+                <tr v-for="area in this.areas" :key="area">
                     <td>{{ area.title }}</td>
-                    <td>{{ area.plan }}</td>
-                    <td>{{ area.workersCount }}</td>
+                    <td>{{ area.productionCount }}</td>
+                    <td>{{ area.workerCount }}</td>
+                    <td>{{ area.probationCount }}</td>
                 </tr>
             </tbody>
         </table>

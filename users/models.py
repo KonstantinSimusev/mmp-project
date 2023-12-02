@@ -2,6 +2,7 @@ from django.db import models
 
 
 class Employee(models.Model):
+    numeric = models.CharField('Номер сортировки')
     slug = models.CharField('Уникальное название')
     fullname = models.CharField('ФИО')
     # name = models.CharField('Имя')
@@ -18,7 +19,6 @@ class Employee(models.Model):
     # dismissal_date = models.CharField('Дата увольнения')
     # area = models.CharField('Участок')
     # presence = models.CharField('Присутствие на рабочем месте')
-    # numeric = models.CharField('Номер сортировки')
     # status = models.CharField('Статус')
     # login = models.CharField('Логин')
     # password = models.CharField('Пароль')

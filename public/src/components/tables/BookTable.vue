@@ -1,6 +1,7 @@
 <script>
 import axios from 'axios';
 
+
 class Profession {
     constructor(id, title, count) {
         this.id = id;
@@ -9,12 +10,35 @@ class Profession {
     }
 }
 
+
+class TeamProfession {
+    constructor(title, teams) {
+        this.title = title;
+        this.teams = teams;
+    }
+}
+
+
+class TeamCount {
+    constructor(number, total) {
+        this.number = number;
+        this.total = total;
+    }
+}
+
+
 export default {
     name: 'BookTable',
     data() {
         return {
             employees: [],
             professions: [],
+            teamProfessions: [
+                'УКЛАДЧИК - УПАКОВЩИК',
+                'ШТАБЕЛИРОВЩИК МЕТАЛЛА',
+                'ШТАМПОВЩИК',
+            ],
+            teams: [1, 2, 3, 4],
         }
     },
     async mounted() {
@@ -40,42 +64,103 @@ export default {
                     employee.slug == profession.slug).length
             )
         );
+        
+        this.teams = this.teams.map(team =>
+            new TeamCount(
+                team,
+                this.employees.filter(employee =>
+                    employee.team == team &&
+                    employee.schedule == '2-А' &&
+                    employee.slug != 'master').length
+            )
+        );
 
+        this.teamProfessions = this.teamProfessions.map(profession =>
+            new TeamProfession(
+                profession,
+                this.teams.map(team =>
+                    new TeamCount (
+                        team,
+                        this.employees.filter(employee =>
+                            employee.profession == profession &&
+                            employee.team == team.number &&
+                            employee.schedule == '2-А' &&
+                            employee.slug != 'master').length
+                    )
+                )
+            )
+        );
     }, 
 }
 </script>
 
 <template>
-    <div class="wrapper mt-5 shadow p-4 rounded-4">
-        <div class="text-center fw-bold mb-2 text-uppercase small">Книга личного состава</div>
+    <div class="wrapper mt-5">
 
-        <table class="table table-bordered table-hover table-sm align-middle small">
-            <thead class="table-success">
-                <tr>
-                    <th class="text-center">#</th>
-                    <th class="text-center">Профессия</th>
-                    <th class="text-center">Чел</th>
-                </tr>
-            </thead>
-            <tbody class="table-light">
-                <tr v-for="(profession, number) in this.professions.sort((a,b) => a.id - b.id)" :key="profession">
-                    <th class="text-center">{{ number + 1 }}</th>    
-                    <td class="ps-2">{{ profession.title }}</td>
-                    <td class="text-center">{{ profession.count }}</td>
-                </tr>
-            </tbody>
-            <tfoot class="table-secondary">
-                <tr>
-                    <th colspan="3" class="text-end pe-2">Итого: {{ employees.length }}</th>
-                </tr>
-            </tfoot>
-        </table>
+        <div class="text-center text-secondary fw-bold small">Книга личного состава</div>
+
+        <div class="row mt-3">
+            <div class="col">
+                
+                <table class="table table-hover table-sm align-middle small mb-4">
+                    <thead class="small">
+                        <tr>
+                            <th class="text-light bg__header__color text-center">#</th>
+                            <th class="text-light bg__header__color">Профессия</th>
+                            <th class="text-light bg__header__color text-center">Чел</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        <tr v-for="(profession, number) in this.professions.sort((a,b) => a.id - b.id)" :key="profession">
+                            <th class="text-center">{{ number + 1 }}</th>    
+                            <td>{{ profession.title }}</td>
+                            <td class="text-center">{{ profession.count }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="table-secondary small">
+                        <tr>
+                            <th colspan="2" class="text-end">Итого:</th>
+                            <th class="text-center">{{ employees.length }}</th>
+                        </tr>
+                    </tfoot>
+                </table> 
+
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col">
+                <div class="text-center text-secondary fw-bold small">Состав бригады (КЛС)</div>
+
+                <table class="table table-hover table-sm align-middle small mt-3">
+                    <thead class="small">
+                        <tr>
+                            <th class="text-light bg__header__color ps-2">Профессия</th>
+                            <th v-for="team in this.teams" :key="team" class="text-light bg__header__color text-center">бр{{ team.number }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        <tr v-for="profession in this.teamProfessions" :key="profession">
+                            <td class="ps-2">{{ profession.title }}</td>
+                            <td v-for="team in profession.teams" :key="team" class="text-center">{{ team.total }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="table-secondary small">
+                        <tr>
+                            <th class="ps-2 text-end">Итого:</th>
+                            <th v-for="team in this.teams" :key="team" class="text-center">{{ team.total }}</th>
+                        </tr>
+                    </tfoot>
+                </table> 
+
+            </div>
+        </div>
 
     </div>
 </template>
 
 <style scoped>
-.bg__color {
-    background: rgba(237, 237, 237, 0.8);
+.bg__header__color {
+    background: #3d3d3d;
 }
 </style>

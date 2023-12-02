@@ -1,5 +1,4 @@
 <script>
-
 import Header from '../components/Header.vue';
 import LoginForm from '../components/forms/LoginForm.vue';
 
@@ -23,8 +22,7 @@ export default {
                 v-if="employee.length > 0" />
 
         <LoginForm  :employee="employee" 
-                    :employees="employees"/>
-                    
+                    :employees="employees"  />           
     </div>
 </template>
 

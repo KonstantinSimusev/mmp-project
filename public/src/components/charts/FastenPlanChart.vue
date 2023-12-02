@@ -62,7 +62,7 @@ export default {
                     x: {
                         grid: {
                             display: false
-                        }
+                        },
                     },
                     y: {
                         display: false

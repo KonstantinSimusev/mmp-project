@@ -2,13 +2,15 @@
 
 export default {
     name: 'Header',
-    props: ['employee'],
+    props: [
+        'employee',
+    ],
 }
 </script>
 
 <template>
     <div class="wrapper">
-        <div class="navbar navbar-expand-md bg-dark navbar-dark fixed-top ">
+        <div class="navbar navbar-expand-md bg-dark navbar-dark fixed-top">
             <div class="container d-flex justify-content-between">
                 <a class="navbar-brand" href="#">MagMetalPack</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">

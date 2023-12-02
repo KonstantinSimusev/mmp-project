@@ -8,13 +8,18 @@ export default {
     ],
     data() {
         return {
+            // Input Properties
             shiftDate: '',
+
+            // Select Properties
             shiftNumber: 'Выберите смену',
             shiftOptions: [
                 { value: 'Выберите смену' },
                 { value: '1' },
                 { value: '2' },
             ],
+
+            // Invalid properties
             emptyDate: '',
             emptyShift: '',
         }
@@ -43,25 +48,18 @@ export default {
     <div class="container">    
         <form class="mx-auto" @submit.prevent="createDate()">
 
-            <input type="date" v-bind:class="`form-control mb-3 ${ emptyDate } ps-4 shadow`" v-model="shiftDate">
+            <input type="date" v-bind:class="`form-control mb-3 ${ emptyDate } ps-4 shadow-sm`" v-model="shiftDate">
 
-            <select v-bind:class="`form-control form-select mb-5 ${ emptyShift } ps-4 shadow`" v-model="shiftNumber">
+            <select v-bind:class="`form-control form-select mb-5 ${ emptyShift } ps-4 shadow-sm`" v-model="shiftNumber">
                 <option v-for="option in shiftOptions" v-bind:value="option.value" :key="option">{{ option.value }}</option>
             </select>
             
-            <button class="btn btn-secondary">Создать смену</button>
+            <button class="btn btn-danger">Создать смену</button>
 
         </form>
     </div>
 </template>
 
 <style scoped>
-form { margin-top: 130px; }
 form, .btn { width: 280px; }
-
-/* input:focus,
-select:focus,
-button:focus,
-input.is-invalid:focus, */
-/* select.is-invalid:focus { box-shadow: none; } */
 </style>

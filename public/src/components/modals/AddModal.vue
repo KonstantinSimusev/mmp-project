@@ -1,49 +1,58 @@
 <script>
 
-class Option {
-    constructor(value) {
-        this.value = value;
-    }
-}
-
 export default {
     name: 'AddModal',
     props: [
+        'addEmployee',
+        'employee',
+        'employees',
         'notTeamWorkers',
-        'shift',
-        'timesheet',
     ],
     data() {
         return {
+            names: [],
             workerName: 'Выберите работника',
-            nameOptions: [],
-            visible: true,
+            nameOptions: this.createWorkerNames(),
         }
     },
-    mounted() {
-        const names = this.notTeamWorkers.map(worker => worker.fullname).sort();
-
-        this.nameOptions.push('Выберите работника');
-        this.nameOptions.push(...names);
-
-        this.nameOptions = this.nameOptions
-        .filter((worker, index, workers) => workers.indexOf(worker) === index);
-
-        this.nameOptions = this.nameOptions.map(name => new Option(name));
-    },
     methods: {
-        addWorker() {
-            const addEmployee = this.notTeamWorkers.filter(employee => 
-                employee.fullname == this.workerName);
-            
-            this.timesheet[0].push(...addEmployee);
-            
-            this.timesheet[0] = this.timesheet[0].map(str => JSON.stringify(str))
-            .filter((worker, index, workers) => workers.indexOf(worker) === index);
-            
-            this.timesheet[0] = this.timesheet[0].map(worker => JSON.parse(worker));
 
+        addWorker() {
+            if (this.workerName != 'Выберите работника') {
+                if (this.names.length > 0) {
+                    const newName = this.names.filter(name => 
+                        name == this.workerName);
+
+                    if (newName.length == 0) 
+                        this.appendWorker(); 
+                } else
+                    this.appendWorker();
+            }
             this.workerName = 'Выберите работника';
+        },
+
+        appendWorker() {
+            const worker = this.notTeamWorkers.filter(worker =>
+                worker.fullname == this.workerName);
+
+            this.names.push(this.workerName);
+            this.addEmployee.push(...worker);
+    
+        },
+
+        createWorkerNames() {
+            let optionName = {};
+            let options = [];
+            const names = this.notTeamWorkers.map(worker => 
+                worker.fullname).sort();
+
+            options.push('Выберите работника');
+            options.push(...names);
+
+            const nameOptions = options.map(name => 
+                optionName = { value: name });
+
+            return nameOptions;
         },
     }
 }
@@ -53,7 +62,7 @@ export default {
     <div class="wrapper">
 
         <div class="mt-5 text-center">
-            <button style="width: 245px;" v-if="visible" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#add">Добавить работника</button>
+            <button style="width: 245px;" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#add">Добавить работника</button>
         </div>
 
         <!-- The Modal -->
@@ -68,9 +77,10 @@ export default {
 
                     <!-- Modal body -->
                     <div class="modal-body">
+
                         <form @submit.prevent="addWorker()">
                             
-                            <select class="form-control form-select text-center my-5 shadow" v-model="workerName">
+                            <select class="form-control form-select text-center my-5 shadow-sm" v-model="workerName">
                                 <option v-for="option in nameOptions" :key="option.id" v-bind:value="option.value">{{ option.value }}</option>
                             </select>
 

@@ -27,8 +27,11 @@ export default {
             report: [],
             timesheets: [],
             team: '',
-            timesheet: [],
-            professions: [],
+            presenceSheet: [],
+            notPresenceSheet: [],
+            presenceCount: 0,
+            notPresenceCount: 0,
+            totalCount: 0,
         }
     },
     async mounted() {
@@ -68,17 +71,15 @@ export default {
             .sort((a, b) => a > b ? 1 : -1)
             .map(element => element.split('__'));
 
-        this.professions = strSheet.map(array =>
+        const sheetProfessions = strSheet.map(array =>
             new Profession(
                 array[0],
                 array[1],
                 array[2],
             )
-        );
-
-        console.log(this.professions);
-
-        const newTeamProfessions = this.professions.map(profession =>
+        )
+    
+        const professions = sheetProfessions.map(profession =>
             new TeamProfession(
                 profession.title,
                 this.createProbation(profession.probation),
@@ -90,13 +91,29 @@ export default {
             )
         );
 
-        this.timesheet = newTeamProfessions.filter(profession =>
-            profession.total != 0);
+        this.presenceSheet = professions.filter(profession =>
+            profession.presence == 'ЯВКА');
+
+        this.notPresenceSheet = professions.filter(profession =>
+            profession.presence != 'ЯВКА');
+
+        this.totalCount = professions.map(profession => 
+            profession.total
+        ).reduce((sum, next) => sum + next, 0);
+
+        this.presenceCount = this.presenceSheet.map(profession =>
+            profession.total
+        ).reduce((sum, next) => sum + next, 0);
+
+        this.notPresenceCount = this.notPresenceSheet.map(profession =>
+            profession.total
+        ).reduce((sum, next) => sum + next, 0);
+
     },
     methods: {
         createProbation(probation) {
             if (probation == 'СТАЖЕР')
-                return probation;
+                return probation = 'СТАЖЕР';
             else
                 return probation = '';
         }
@@ -105,39 +122,77 @@ export default {
 </script>
 
 <template>
-    <div class="wrapper mt-5">
-        <div class="row">
-            <div class="text-secondary fw-bold small">Табель. Бригада {{ this.team }}</div>
-        </div>
-        <div class="row mt-2">
+    <div class="wrapper mt-3">
+
+        <div class="text-secondary fw-bold small">Состав бригады (факт)</div>
+        <div>{{ totalCount }} чел</div>
+
+        <div class="row mt-3">
             <div class="col">
                 
+                <div class="text-secondary fw-bold small">Присутствовало</div>
 
-        <table class="table table-hover table-sm align-middle small mb-4">
-            <thead class="small">
-                <tr>
-                    <th class="text-light bg__header__color ps-2">Профессия</th>
-                    <th class="text-center text-light bg__header__color"></th>
-                    <th class="text-center text-light bg__header__color">Статус</th>
-                    <th class=" text-center text-light bg__header__color">Чел</th>
-                </tr>
-            </thead>
-            <tbody class="small">
-                <tr v-for="profession in this.timesheet" :key="profession">
-                    <td class="ps-2">{{ profession.title }}</td>
-                    <td class="text-center">{{ profession.probation }}</td>
-                    <td class="text-center">{{ profession.presence }}</td>
-                    <td class="text-center">{{ profession.total }}</td>
-                </tr>
-            </tbody>
-            <tfoot class="table-secondary">
-                <tr >
-                    <th colspan="4" class="text-end pe-3 small">Итого: {{ this.timesheet.length }}</th>
-                </tr>
-            </tfoot>
-        </table>                
+                <table class="table table-hover table-sm align-middle small mt-2">
+                    <thead class="small">
+                        <tr>
+                            <th class="text-light bg__header__color ps-2">Профессия</th>
+                            <th class="text-center text-light bg__header__color">Стажер</th>
+                            <th class="text-center text-light bg__header__color">Статус</th>
+                            <th class=" text-center text-light bg__header__color">Чел</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        <tr v-for="profession in this.presenceSheet" :key="profession">
+                            <td class="ps-2">{{ profession.title }}</td>
+                            <td class="text-center">{{ profession.probation }}</td>
+                            <td class="text-center">{{ profession.presence }}</td>
+                            <td class="text-center">{{ profession.total }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="table-secondary small">
+                        <tr>
+                            <th colspan="3" class="text-end">Итого:</th>
+                            <th class="text-center">{{ this.presenceCount }}</th>
+                        </tr>
+                    </tfoot>
+                </table> 
+
             </div>
         </div>
+
+
+        <div v-if="this.notPresenceCount > 0" class="row">
+            <div class="col">
+                <div class="text-secondary fw-bold small">Отсутствовало</div>
+                
+                <table class="table table-hover table-sm align-middle small mt-2">
+                    <thead class="small">
+                        <tr>
+                            <th class="text-light bg__header__color ps-2">Профессия</th>
+                            <th class="text-center text-light bg__header__color">Стажер</th>
+                            <th class="text-center text-light bg__header__color">Статус</th>
+                            <th class=" text-center text-light bg__header__color">Чел</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        <tr v-for="profession in this.notPresenceSheet" :key="profession">
+                            <td class="ps-2">{{ profession.title }}</td>
+                            <td class="text-center">{{ profession.probation }}</td>
+                            <td class="text-center">{{ profession.presence }}</td>
+                            <td class="text-center">{{ profession.total }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="table-secondary small">
+                        <tr>
+                            <th colspan="3" class="text-end">Итого:</th>
+                            <th class="text-center">{{ this.notPresenceCount }}</th>
+                        </tr>
+                    </tfoot>
+                </table>  
+
+            </div>
+        </div>
+
     </div>
 </template>
 

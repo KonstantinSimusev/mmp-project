@@ -155,10 +155,14 @@ export default {
 </script>
 
 <template>
-    <div class="wrapper mt-5 shadow p-4 bg__color rounded-4">
+    <div class="wrapper mt-3">
 
         <div v-for="profession in this.info" :key="profession" class="text-center">
-            <b><small>{{ profession.title }}</small></b>
+            
+        <div class="text-secondary fw-bold small">
+            <div>Учаток упаковки металлопродукции ЛПЦ-5</div>
+            <div>{{ profession.title }}</div>
+        </div>
 
         <table class="mx-auto table table-bordered table-hover table-sm align-middle small mt-2">
             <thead class="table-success">   
