@@ -10,17 +10,15 @@ class Option {
 
 
 export default {
-    name: 'TimeSheet',
+    name: 'NotPresenceBlock',
     props: [
+        'employee',
+        'employees',
+        'production',
         'timesheet',
-        'teamWorkers',
     ],
     data() {
         return {
-            info: 'Заполните поле',
-            sheetError: false,
-            areaErrorCount: 0,
-            sheetErrorCount: 0,
             presenceOptions: [
                 new Option('Выберите причину'),
                 new Option('Б'),
@@ -56,33 +54,34 @@ export default {
             ],
         }
     },
-    async mounted() {
-        try {
-            const dataBaseAreas = await axios
-                .get('http://127.0.0.1:8000/api/area/?format=json');
-            
-            this.areas = dataBaseAreas.data;
-
-        } catch (error) {
-            console.log(error);
-        }
-
+    mounted() {
         this.createTimesheet();
     },
     methods: {
         createTimesheet() {
-            if (this.timesheet.length == 0)
-                this.timesheet.push(...this.teamWorkers);
+            let workers = [];
+
+            if (this.timesheet.length == 0) {
+                this.getTeamWorkers().forEach(worker => {
+                    worker.presence = 'Выберите причину';
+                    worker.error = true;
+                    worker.visible = true;
+                    worker.info = 'Измените поле'
+                    workers.push(worker);
+                });
+
+                this.timesheet.push(...workers);
+            }
         },
 
-        chooseReason(id) {
-            const employee = this.teamWorkers.filter(employee => 
-                employee.id == id)[0];
-            
-            if (employee.presence !== 'Выберите причину')
-                employee.error = false;
-            else
-                employee.error = true;
+        getTeamWorkers() {
+            const workers = this.employees.filter(employee =>
+                employee.slug != 'boss' &&
+                employee.slug != 'master' &&
+                employee.team == this.employee[0].team &&
+                employee.schedule == '2-А');
+
+            return workers;
         },
     }
 }
@@ -91,7 +90,7 @@ export default {
 <template>
     <div class="wrapper">
 
-        <div v-for="(worker, number) in this.timesheet.sort((a, b) => (a.slug + a.fullname) > (b.slug + b.fullname) ? 1 : -1)" :key="worker.id">
+        <div v-for="(worker, number) in this.timesheet" :key="worker.id">
 
             <div v-if="worker.visible" class="block__color rounded-4 p-3 mb-5 shadow-sm">
 
@@ -107,7 +106,7 @@ export default {
 
                 <div class="mb-1 text-secondary small">Причина отсутствия :</div>
 
-                <select class="form-control form-select mb-2 ps-3" v-model="worker.presence" @change="this.chooseReason(worker.id)">
+                <select class="form-control form-select mb-2 ps-3" v-model="worker.presence">
                     <option v-for="option in this.presenceOptions" :key="option" v-bind:value="option.value">{{ option.value }}</option>
                 </select>                
 

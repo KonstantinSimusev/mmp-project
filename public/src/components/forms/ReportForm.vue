@@ -1,8 +1,9 @@
 <script>
 import axios from 'axios';
-import Trainee from '../Trainee.vue';
-import Area from '../Area.vue';
-import TimeSheet from '../TimeSheet.vue';
+import AddWorkerBlock from '../blocks/AddWorkerBlock.vue';
+import TraineeBlock from '../blocks/TraineeBlock.vue';
+import AreaBlock from '../blocks/AreaBlock.vue'
+import NotPresenceBlock from '../blocks/NotPresenceBlock.vue';
 
 
 class Worker {
@@ -32,40 +33,24 @@ class Worker {
 }
 
 
-class AreaWorker {
-    constructor(
-        area,
-        initials,
-        presence,
-        trainee,
-    ) {
-        this.area = area;
-        this.initials = initials;
-        this.presence = presence;
-        this.trainee = trainee;
-    }
-}
-
-
 export default {
     name: 'ReportForm',
     components: {
-        Trainee,
-        Area,
-        TimeSheet,
+        AddWorkerBlock,
+        TraineeBlock,
+        AreaBlock,
+        NotPresenceBlock,
     },
     props: [
-        'addEmployee',
+        'addedTrainees',
+        'addWorkers',
         'employee',
         'employees',
-        'nameOptions',
-        'notTeamWorkers',
         'production', 
         'reportBtn', 
         'shift',
         'timesheet',
         'trainees',
-        'teamWorkers',
     ],
     data() {
         return {
@@ -89,10 +74,6 @@ export default {
     },
     methods: {
         saveReport() {
-            console.log(this.getSheetWorkers());
-
-            this.createDataBaseWorkers();
-
             const data = {
                 date: this.shift[0].day,
                 shift: this.shift[0].number,
@@ -105,96 +86,6 @@ export default {
             if (this.reportBtn.length == 0)
                 this.reportBtn.push(this.visibleBtn);
         },
-
-        createSheetWorkers() {
-            let worker = {};
-            let workers = [];
-
-            this.getSheetWorkers.map()
-        },
-
-        getSheetWorkers() {
-            const workers = this.timesheet.filter(worker =>
-                worker.presence != 'Выберите причину');
-            return workers
-        },
-
-        createDataBaseWorkers() {
-            let trainee = {};
-            let workers = [];
-            const addTrainees = this.trainees.join();
-
-            this.createAreaWorkers().forEach(function(worker) {
-                if (addTrainees.includes(worker.initials)) {
-                    trainee = new AreaWorker(
-                        worker.area,
-                        worker.initials,
-                        'ЯВКА',
-                        'СТАЖЕР',
-                    );
-                    workers.push(trainee);
-                } else 
-                    workers.push(worker);
-            });
-
-            const dataBaseWorkers = this.makeDataBaseWorkers(workers);
-            return dataBaseWorkers;
-        },
-
-        makeDataBaseWorkers(array) {
-            let workers = [];
-            if (array.length > 0)
-                workers = array.map(worker =>
-                    new Worker(
-                        this.getProperty(worker.initials).id,
-                        this.getProperty(worker.initials).slug,
-                        this.getProperty(worker.initials).fullname, 
-                        this.getProperty(worker.initials).profession, 
-                        this.getProperty(worker.initials).schedule, 
-                        this.getProperty(worker.initials).team,
-                        worker.area,
-                        worker.initials,
-                        worker.presence,
-                        worker.trainee,
-                    )                
-                );
-
-            return workers;
-        },
-
-        getProperty(initials) {
-            const employee = this.getWorkers().filter(worker =>
-                worker.initials == initials)[0];
-            return employee;
-        },
-
-        createAreaWorkers() {
-            let workers = [];
-            workers = this.production.map(area =>
-                area.addWorkers.map(worker =>
-                    new AreaWorker(
-                        area.title,
-                        worker,
-                        'ЯВКА',
-                        'ПРОЙДЕНА',
-                    )
-                )
-            ).flat();
-
-            return workers;
-        },
-
-        //     if (this.trainees.length > 0)
-        //         workers = this.trainees.map(trainee =>
-        //             this.getWorkers().filter(worker =>
-        //                 worker.initials == trainee)).flat();
-
-        getWorkers() {
-            let workers = [];
-            workers.push(...this.notTeamWorkers);
-            workers.push(...this.teamWorkers);
-            return workers;
-        },
     }
 }
 </script>
@@ -203,21 +94,30 @@ export default {
     <div class="wrapper">
         <form class="p-2 mb-5" @submit.prevent="this.saveReport()">
 
-            <Trainee 
-                :nameOptions="nameOptions"
-                :notTeamWorkers="notTeamWorkers" 
-                :teamWorkers="teamWorkers"
-                :trainees="trainees" />
+            <AddWorkerBlock
+                :addWorkers="addWorkers"
+                :employee="employee"
+                :employees="employees" />
 
-            <Area
-                :nameOptions="nameOptions"
-                :notTeamWorkers="notTeamWorkers" 
+            <!-- <TraineeBlock
+                :addedTrainees="addedTrainees" 
+                :addedWorkers="addedWorkers"
+                :employee="employee"
+                :employees="employees"
+                :trainees="trainees" /> -->
+
+            <!-- <AreaBlock
+                :addedWorkers="addedWorkers"
+                :employee="employee"
+                :employees="employees"
                 :production="production"
-                :teamWorkers="teamWorkers" />
+                :timesheet="timesheet" /> -->
 
-            <TimeSheet 
-                :timesheet="timesheet"
-                :teamWorkers="teamWorkers" />
+            <!-- <NotPresenceBlock
+                :employee="employee"
+                :employees="employees" 
+                :production="production"
+                :timesheet="timesheet" /> -->
 
 
             <button v-if="countAreaError == 0 && countSheetError == 0" class="btn btn-danger float-end" data-bs-dismiss="modal">Сохранить</button>

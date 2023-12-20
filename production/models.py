@@ -18,8 +18,6 @@ class Area(models.Model):
     slug = models.CharField('Уникальное название')
     title = models.CharField('Название участка')
     unit = models.CharField('Производство')
-    # residue = models.CharField('Остаток')
-    # plan = models.CharField('План')
 
     def __str__(self):
         return self.title

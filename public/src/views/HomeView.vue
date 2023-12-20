@@ -22,7 +22,7 @@ export default {
 
         <Header :employee="employee" />
 
-        <HomePage />
+        <!-- <HomePage /> -->
 
         <Footer />
 
