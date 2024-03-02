@@ -37,7 +37,6 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  min-width: 100%;
   background-image: url(../images/cover.jpg);
   background-repeat: no-repeat;
   background-position: center;
