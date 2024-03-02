@@ -1,0 +1,165 @@
+/* HEADER */
+
+.header {
+  display: grid;
+  grid-template-columns: 30px auto auto;
+  align-items: center;
+  padding: 30px 30px;
+}
+
+.header__title {
+  padding-left: 5px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.header__menu {
+  justify-self: end;
+}
+
+.header__links-list {
+  display: flex;
+  gap: 25px;
+  list-style: none;
+}
+
+.header__link {
+  display: block;
+  line-height: 1.5;
+  letter-spacing: .5px;
+  text-decoration: none;
+}
+
+/* COVER */
+
+.cover {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-width: 100%;
+  background-image: url(../images/cover.jpg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-color: rgba(0 0 0 / 0.6);
+}
+
+.cover__title {
+  position: relative;
+  z-index: 3;
+  min-width: 100%;
+  padding: 70px;
+  color: #fff;
+  font-size: 60px;
+  line-height: 2;
+  letter-spacing: 15px;
+  text-transform: uppercase;
+}
+
+.aligned-text {
+  display: block;
+}
+
+.aligned-text_center {
+  text-align: center;
+}
+
+.aligned-text_right {
+  text-align: end;
+}
+
+.no-letter-spacing {
+  letter-spacing: 0;
+}
+
+/* PRODUCTION */
+
+.production {
+  padding: 100px 30px;
+}
+
+.production__heading {
+  padding-bottom: 30px;
+  font-size: 30px;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  word-spacing: 15px;
+}
+
+.production__card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  list-style-type: none;
+}
+
+.production__card-list-item {
+  flex-grow: 1;
+  flex-basis: 300px;
+  min-height: 500px;
+}
+
+.card-link {
+  text-decoration: none;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100%;
+  padding: 50px;
+  color: #fff;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.card_type_lpc-4 {
+  background-image: url(../images/lpc-4.jpg);
+}
+
+.card_type_lpc-5 {
+  background-image: url(../images/lpc-5.jpg);
+}
+
+.card_type_uvs {
+  background-image: url(../images/uvs.jpg);
+}
+
+.card__title {
+  position: relative;
+  z-index: 3;
+  font-weight: 700;
+  font-size: 22px;
+  text-transform: uppercase;
+}
+
+.card__text {
+  position: relative;
+  z-index: 3;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+/* FOOTER */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  padding-bottom: 50px;
+  letter-spacing: .6px;
+}
