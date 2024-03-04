@@ -3,7 +3,7 @@
 .header {
   display: grid;
   grid-template-columns: 40px auto auto;
-  align-items: center;
+  /* align-items: center; */
   padding: 30px 50px;
 }
 
@@ -19,7 +19,7 @@
 
 .header__links-list {
   display: flex;
-  /* flex-direction: column; */
+  flex-direction: column;
   gap: 25px;
   list-style: none;
 }
@@ -35,8 +35,7 @@
 .cover {
   position: relative;
   z-index: 1;
-  padding: 150px 70px 50px;
-  width: 100%;
+  padding: 200px;
   background-image: url(../images/cover.jpg);
   background-repeat: no-repeat;
   background-position: center;
